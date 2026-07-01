@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Burger Challenge Tracker</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap');
+
+    :root {
+      --bg: #1a1208;
+      --surface: #241a0d;
+      --card: #2e2010;
+      --amber: #f5a623;
+      --red: #e03c2e;
+      --cream: #f5e9d0;
+      --muted: #8a7560;
+      --ahead: #4caf50;
+      --behind: #e03c2e;
+      --on-pace: #f5a623;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 0 0 48px;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--surface);
+      padding: 28px 20px 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--amber);
+    }
+
+    .header-emoji {
+      font-size: 2.4rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+      color: var(--amber);
+      line-height: 1;
+    }
+
+    .header p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* MAIN STAT */
+    .hero-stat {
+      background: var(--surface);
+      margin: 20px 16px 0;
+      border-radius: 14px;
+      padding: 22px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid rgba(245,166,35,0.2);
+    }
+
+    .stat-block { text-align: center; }
+
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.2rem;
+      line-height: 1;
+      color: var(--amber);
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .divider-v {
+      width: 1px;
+      height: 60px;
+      background: rgba(245,166,35,0.2);
+    }
+
+    /* PACE BADGE */
+    .pace-badge {
+      margin: 14px 16px 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .pace-badge.ahead { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4); color: var(--ahead); }
+    .pace-badge.behind { background: rgba(224,60,46,0.15); border: 1px solid rgba(224,60,46,0.4); color: var(--behind); }
+    .pace-badge.on-pace { background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.4); color: var(--on-pace); }
+
+    .pace-icon { font-size: 1.2rem; }
+    .pace-text { flex: 1; }
+    .pace-text .pace-main { display: block; }
+    .pace-text .pace-sub { font-size: 0.72rem; font-weight: 400; opacity: 0.8; }
+
+    /* PROGRESS BAR CARD */
+    .card {
+      background: var(--surface);
+      margin: 12px 16px 0;
+      border-radius: 14px;
+      padding: 18px 16px;
+      border: 1px solid rgba(245,166,35,0.12);
+    }
+
+    .card-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .progress-track {
+      position: relative;
+      height: 18px;
+      background: var(--card);
+      border-radius: 9px;
+      overflow: visible;
+    }
+
+    /* Pace line (target) */
+    .pace-marker {
+      position: absolute;
+      top: -6px;
+      width: 3px;
+      height: 30px;
+      background: var(--muted);
+      border-radius: 2px;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+
+    .pace-marker::after {
+      content: 'pace';
+      position: absolute;
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.58rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    /* Actual fill */
+    .progress-fill {
+      height: 100%;
+      border-radius: 9px;
+      background: linear-gradient(90deg, #e03c2e, #f5a623);
+      position: relative;
+      z-index: 1;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+      min-width: 0;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 18px;
+      height: 100%;
+      background: rgba(255,255,255,0.25);
+      border-radius: 9px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 22px;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    /* TIMELINE BAR */
+    .timeline-track {
+      height: 10px;
+      background: var(--card);
+      border-radius: 5px;
+      position: relative;
+      overflow: visible;
+    }
+
+    .timeline-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: rgba(245,166,35,0.4);
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .today-marker {
+      position: absolute;
+      top: -5px;
+      width: 4px;
+      height: 20px;
+      background: var(--amber);
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px rgba(245,166,35,0.6);
+    }
+
+    .today-marker::after {
+      content: 'today';
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.58rem;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 22px;
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    /* STATS ROW */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 16px 0;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 14px 12px;
+      border: 1px solid rgba(245,166,35,0.1);
+      text-align: center;
+    }
+
+    .stat-card .val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--cream);
+      line-height: 1;
+    }
+
+    .stat-card .val.highlight { color: var(--amber); }
+
+    .stat-card .lbl {
+      font-size: 0.63rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 3px;
+    }
+
+    /* LOG FORM */
+    .form-card {
+      background: var(--surface);
+      margin: 12px 16px 0;
+      border-radius: 14px;
+      padding: 18px 16px;
+      border: 1px solid rgba(245,166,35,0.12);
+    }
+
+    .form-card h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      color: var(--amber);
+      margin-bottom: 14px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    .field label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+    }
+
+    .field input {
+      background: var(--card);
+      border: 1px solid rgba(245,166,35,0.2);
+      border-radius: 8px;
+      color: var(--cream);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      padding: 10px 12px;
+      width: 100%;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus {
+      border-color: var(--amber);
+    }
+
+    .field input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.7) sepia(1) saturate(3) hue-rotate(10deg);
+    }
+
+    .btn-log {
+      width: 100%;
+      background: var(--amber);
+      color: var(--bg);
+      border: none;
+      border-radius: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.25rem;
+      letter-spacing: 1.5px;
+      padding: 14px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-log:active { opacity: 0.8; }
+
+    /* LOG LIST */
+    .log-section {
+      margin: 12px 16px 0;
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .log-header h3 {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .btn-clear {
+      background: none;
+      border: 1px solid rgba(224,60,46,0.4);
+      color: var(--behind);
+      border-radius: 6px;
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .log-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 20px;
+    }
+
+    .log-item {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      border: 1px solid rgba(245,166,35,0.1);
+    }
+
+    .log-item .log-date { font-size: 0.78rem; color: var(--muted); }
+    .log-item .log-count {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      color: var(--amber);
+    }
+
+    .log-item .log-count span {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+    }
+
+    .btn-del:active { color: var(--behind); }
+
+    /* MOTIVATIONAL FOOTER */
+    .footer-msg {
+      margin: 20px 16px 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-emoji">🍔</span>
+  <h1>200 Burger Challenge</h1>
+  <p>May 26 – September 7, 2026</p>
+</div>
+
+<!-- HERO STATS -->
+<div class="hero-stat">
+  <div class="stat-block">
+    <div class="stat-num" id="totalEaten">0</div>
+    <div class="stat-label">Burgers Eaten</div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="stat-block">
+    <div class="stat-num" id="remaining">200</div>
+    <div class="stat-label">Remaining</div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="stat-block">
+    <div class="stat-num" id="daysLeft">--</div>
+    <div class="stat-label">Days Left</div>
+  </div>
+</div>
+
+<!-- PACE BADGE -->
+<div class="pace-badge on-pace" id="paceBadge">
+  <span class="pace-icon" id="paceIcon">📊</span>
+  <div class="pace-text">
+    <span class="pace-main" id="paceMain">Log your first burger to start tracking</span>
+    <span class="pace-sub" id="paceSub"></span>
+  </div>
+</div>
+
+<!-- BURGER PROGRESS -->
+<div class="card">
+  <div class="card-label">Burgers Eaten vs. Pace</div>
+  <div class="progress-track">
+    <div class="progress-fill" id="burgerFill" style="width:0%"></div>
+    <div class="pace-marker" id="paceMarker" style="left:0%"></div>
+  </div>
+  <div class="progress-labels">
+    <span>0</span>
+    <span>50</span>
+    <span>100</span>
+    <span>150</span>
+    <span>200 🏁</span>
+  </div>
+</div>
+
+<!-- TIME PROGRESS -->
+<div class="card" style="padding-top:14px;">
+  <div class="card-label">Time Elapsed</div>
+  <div class="timeline-track">
+    <div class="timeline-fill" id="timeFill" style="width:0%"></div>
+    <div class="today-marker" id="todayMarker" style="left:0%"></div>
+  </div>
+  <div class="timeline-labels">
+    <span>May 26</span>
+    <span>Jul 2</span>
+    <span>Aug 7</span>
+    <span>Sep 7</span>
+  </div>
+</div>
+
+<!-- MINI STATS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="val highlight" id="paceTarget">--</div>
+    <div class="lbl">Should Be At</div>
+  </div>
+  <div class="stat-card">
+    <div class="val highlight" id="deltaVal">--</div>
+    <div class="lbl">Ahead / Behind</div>
+  </div>
+  <div class="stat-card">
+    <div class="val" id="dailyRate">--</div>
+    <div class="lbl">Per Day Needed</div>
+  </div>
+  <div class="stat-card">
+    <div class="val" id="projectedFinal">--</div>
+    <div class="lbl">Projected Total</div>
+  </div>
+</div>
+
+<!-- LOG FORM -->
+<div class="form-card">
+  <h2>Log a Session</h2>
+  <div class="field-row">
+    <div class="field">
+      <label>Burgers Eaten</label>
+      <input type="number" id="inputCount" min="1" max="50" placeholder="e.g. 3" />
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="inputDate" />
+    </div>
+  </div>
+  <button class="btn-log" onclick="logEntry()">ADD TO THE COUNT</button>
+</div>
+
+<!-- LOG LIST -->
+<div class="log-section">
+  <div class="log-header">
+    <h3>Session Log</h3>
+    <button class="btn-clear" onclick="clearAll()">Clear All</button>
+  </div>
+  <div id="logList">
+    <div class="log-empty">No sessions logged yet. Let's eat. 🍔</div>
+  </div>
+</div>
+
+<div class="footer-msg" id="footerMsg">105 days. 200 burgers. No excuses.</div>
+
+<script>
+  const START = new Date('2026-05-26T00:00:00');
+  const END   = new Date('2026-09-07T00:00:00');
+  const GOAL  = 200;
+  const TOTAL_DAYS = (END - START) / 86400000; // 104 days
+
+  // Set today's date as default
+  const todayStr = new Date().toISOString().split('T')[0];
+  document.getElementById('inputDate').value = todayStr;
+  document.getElementById('inputDate').max = '2026-09-07';
+  document.getElementById('inputDate').min = '2026-05-26';
+
+  let entries = JSON.parse(localStorage.getItem('burgerEntries') || '[]');
+
+  function save() {
+    localStorage.setItem('burgerEntries', JSON.stringify(entries));
+  }
+
+  function totalEaten() {
+    return entries.reduce((s, e) => s + e.count, 0);
+  }
+
+  function logEntry() {
+    const count = parseInt(document.getElementById('inputCount').value);
+    const date  = document.getElementById('inputDate').value;
+    if (!count || count < 1 || !date) {
+      alert('Enter a burger count and date!');
+      return;
+    }
+    entries.push({ count, date, id: Date.now() });
+    entries.sort((a, b) => a.date.localeCompare(b.date));
+    save();
+    document.getElementById('inputCount').value = '';
+    document.getElementById('inputDate').value = todayStr;
+    render();
+  }
+
+  function deleteEntry(id) {
+    entries = entries.filter(e => e.id !== id);
+    save();
+    render();
+  }
+
+  function clearAll() {
+    if (confirm('Clear all logged sessions?')) {
+      entries = [];
+      save();
+      render();
+    }
+  }
+
+  function render() {
+    const now = new Date();
+    const elapsed = Math.max(0, (now - START) / 86400000);
+    const daysLeft = Math.max(0, Math.ceil((END - now) / 86400000));
+    const timePct = Math.min(100, (elapsed / TOTAL_DAYS) * 100);
+
+    const eaten = totalEaten();
+    const remaining = Math.max(0, GOAL - eaten);
+    const burgerPct = Math.min(100, (eaten / GOAL) * 100);
+
+    // Expected by now (pace)
+    const paceNow = Math.round((elapsed / TOTAL_DAYS) * GOAL);
+    const delta = eaten - paceNow;
+
+    // Projected final (current rate * total days)
+    let projected = '--';
+    if (elapsed > 0) {
+      projected = Math.round((eaten / elapsed) * TOTAL_DAYS);
+    }
+
+    // Daily rate needed
+    let dailyNeeded = '--';
+    if (daysLeft > 0) {
+      dailyNeeded = (remaining / daysLeft).toFixed(1);
+    } else if (remaining === 0) {
+      dailyNeeded = '0';
+    }
+
+    // Update DOM
+    document.getElementById('totalEaten').textContent = eaten;
+    document.getElementById('remaining').textContent = remaining;
+    document.getElementById('daysLeft').textContent = daysLeft;
+    document.getElementById('burgerFill').style.width = burgerPct + '%';
+    document.getElementById('paceMarker').style.left = Math.min(100, (paceNow / GOAL) * 100) + '%';
+    document.getElementById('timeFill').style.width = timePct + '%';
+    document.getElementById('todayMarker').style.left = timePct + '%';
+    document.getElementById('paceTarget').textContent = paceNow;
+    document.getElementById('dailyRate').textContent = dailyNeeded;
+    document.getElementById('projectedFinal').textContent = projected === '--' ? '--' : projected;
+
+    // Delta
+    const deltaEl = document.getElementById('deltaVal');
+    if (delta > 0) {
+      deltaEl.textContent = '+' + delta;
+      deltaEl.style.color = 'var(--ahead)';
+    } else if (delta < 0) {
+      deltaEl.textContent = delta;
+      deltaEl.style.color = 'var(--behind)';
+    } else {
+      deltaEl.textContent = '0';
+      deltaEl.style.color = 'var(--amber)';
+    }
+
+    // Pace badge
+    const badge = document.getElementById('paceBadge');
+    const icon  = document.getElementById('paceIcon');
+    const main  = document.getElementById('paceMain');
+    const sub   = document.getElementById('paceSub');
+
+    badge.className = 'pace-badge';
+    if (eaten === 0) {
+      badge.classList.add('on-pace');
+      icon.textContent = '📊';
+      main.textContent = 'Log your first burger to start tracking';
+      sub.textContent = '';
+    } else if (delta > 5) {
+      badge.classList.add('ahead');
+      icon.textContent = '🔥';
+      main.textContent = `${delta} burgers ahead of pace`;
+      sub.textContent = `Keep it up — you're crushing it`;
+    } else if (delta < -5) {
+      badge.classList.add('behind');
+      icon.textContent = '⚠️';
+      main.textContent = `${Math.abs(delta)} burgers behind pace`;
+      sub.textContent = `Time to pick up the pace — ${dailyNeeded}/day needed`;
+    } else {
+      badge.classList.add('on-pace');
+      icon.textContent = '✅';
+      main.textContent = delta >= 0 ? `Right on pace (+${delta})` : `Nearly on pace (${delta})`;
+      sub.textContent = `${dailyNeeded} burgers/day to finish on time`;
+    }
+
+    // Footer message
+    const footerEl = document.getElementById('footerMsg');
+    const pct = Math.round(burgerPct);
+    if (eaten >= GOAL) {
+      footerEl.textContent = '🏆 CHALLENGE COMPLETE. Legend status achieved.';
+    } else if (pct > 75) {
+      footerEl.textContent = `${pct}% there. The finish line is right there. Don't stop.`;
+    } else if (pct > 50) {
+      footerEl.textContent = `Over halfway. ${remaining} burgers stand between you and glory.`;
+    } else {
+      footerEl.textContent = `105 days. 200 burgers. No excuses.`;
+    }
+
+    // Log list
+    const listEl = document.getElementById('logList');
+    if (entries.length === 0) {
+      listEl.innerHTML = '<div class="log-empty">No sessions logged yet. Let\'s eat. 🍔</div>';
+    } else {
+      const sorted = [...entries].reverse();
+      listEl.innerHTML = sorted.map(e => {
+        const d = new Date(e.date + 'T12:00:00');
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `
+          <div class="log-item">
+            <div class="log-date">${dateStr}</div>
+            <div class="log-count">${e.count}<span>burger${e.count !== 1 ? 's' : ''}</span></div>
+            <button class="btn-del" onclick="deleteEntry(${e.id})">✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
